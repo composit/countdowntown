@@ -31,6 +31,10 @@ func countdown(mins int) error {
 
 	f, err := os.Create("/home/matt/.cdt")
 
+	if _, err = f.WriteAt([]byte(fmt.Sprintf("%d", mins)), 0); err != nil {
+		return err
+	}
+
 timer:
 	for {
 		select {
