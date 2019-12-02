@@ -68,9 +68,6 @@ timer:
 		select {
 		case <-ticker.C:
 			d = d - interval
-			fmt.Printf("left: %s\n", d)
-			fmt.Printf("left divided: %#v\n", d/time.Minute)
-			fmt.Printf("left inted: %d\n", int(d/time.Minute))
 			left := int(d / time.Minute)
 
 			if _, err := f.WriteAt([]byte(fmt.Sprintf("%d", left)), 0); err != nil {
