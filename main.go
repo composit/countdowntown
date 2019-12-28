@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -10,8 +11,7 @@ import (
 
 const (
 	// TODO make these configurable
-	doneMsg        = "did"
-	interval       = 5 * time.Second // seconds
+	interval       = 1 * time.Minute
 	outputFilePath = "/home/matt/.cdt"
 )
 
@@ -25,62 +25,54 @@ func main() {
 		log.Fatal(err)
 	}
 
-	f, err := os.Create(outputFilePath)
-	if err != nil {
+	if err := updateFile(mins, outputFilePath); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := updateFile(mins, f); err != nil {
+	if err := countdown(mins, outputFilePath); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := countdown(mins, f); err != nil {
+	if err := writeDoneMsg(mins, outputFilePath); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func updateFile(mins int, f *os.File) error {
+func updateFile(mins int, filePath string) error {
 	b := []byte(fmt.Sprintf("%d", mins))
 
-	l, err := f.WriteAt(b, 0)
-	if err != nil {
-		return err
-	}
-
-	if err := f.Truncate(int64(l)); err != nil {
-		return err
-	}
-
-	if err := f.Sync(); err != nil {
+	if err := ioutil.WriteFile(filePath, b, 0644); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func countdown(mins int, f *os.File) error {
+func countdown(mins int, filePath string) error {
 	d := time.Duration(mins) * time.Minute
 
 	ticker := time.NewTicker(interval)
 
-timer:
 	for {
 		select {
 		case <-ticker.C:
 			d = d - interval
-			left := int(d / time.Minute)
+			remaining := int(d / time.Minute)
 
-			if _, err := f.WriteAt([]byte(fmt.Sprintf("%d", left)), 0); err != nil {
+			if err := updateFile(remaining, filePath); err != nil {
 				return err
 			}
 
 			if int(d) < 1 {
-				break timer
+				return nil
 			}
 		}
 	}
+}
 
-	if _, err := f.WriteAt([]byte(doneMsg), 0); err != nil {
+func writeDoneMsg(mins int, filePath string) error {
+	msg := fmt.Sprintf("did %d", mins)
+	if err := ioutil.WriteFile(filePath, []byte(msg), 0644); err != nil {
 		return err
 	}
 
