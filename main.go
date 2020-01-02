@@ -63,7 +63,7 @@ func countdown(mins int, filePath string) error {
 				return err
 			}
 
-			if int(d) < 1 {
+			if d < 1 {
 				return nil
 			}
 		}
