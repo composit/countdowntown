@@ -11,8 +11,7 @@ import (
 
 const (
 	// TODO make these configurable
-	interval       = 1 * time.Minute
-	outputFilePath = "/home/matt/.cdt"
+	interval = 1 * time.Minute
 )
 
 func main() {
@@ -24,6 +23,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// TODO make this configurable
+	outputFilePath := fmt.Sprintf("%s/.cdt", os.Getenv("HOME"))
 
 	if err := updateFile(mins, outputFilePath); err != nil {
 		log.Fatal(err)
@@ -71,7 +73,7 @@ func countdown(mins int, filePath string) error {
 }
 
 func writeDoneMsg(mins int, filePath string) error {
-	msg := fmt.Sprintf("did %d", mins)
+	msg := fmt.Sprintf("did %d at %s", mins, time.Now().Format("15:04"))
 	if err := ioutil.WriteFile(filePath, []byte(msg), 0644); err != nil {
 		return err
 	}
